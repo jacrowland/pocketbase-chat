@@ -8,6 +8,7 @@ interface AppContextProps {
   currentChannel: Record | null; // id of the channel
   memberships: Record[]; // list of memberships
   updateLocation: (serverId: string, channelId?: string) => void;
+  isLoading: boolean;
 }
 
 export const AppContext = React.createContext<AppContextProps>({
@@ -15,6 +16,7 @@ export const AppContext = React.createContext<AppContextProps>({
   currentChannel: null,
     memberships: [] as Record[],
   updateLocation: () => {},
+  isLoading: true,
 });
 
 export const AppContextProvider = ({
@@ -25,9 +27,8 @@ export const AppContextProvider = ({
   const pb = usePocketbase();
   const [currentServer, setCurrentServer] = useState<Record | null>(null);
   const [currentChannel, setCurrentChannel] = useState<Record | null>(null);
-
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [memberships, setMemberships] = useState<Record[]>([]);
-
   const { user } = useAuthContext();
 
   const updateLocation = async (serverId: string, channelId?: string) => {
@@ -74,6 +75,7 @@ export const AppContextProvider = ({
         getMemberships().then((memberships) => {
             setMemberships(memberships);
             updateLocation(memberships[0].server);
+            setIsLoading(false);
         });
     }
   }, [user])
@@ -86,7 +88,7 @@ export const AppContextProvider = ({
 
   return (
     <AppContext.Provider
-      value={{ currentServer, currentChannel, updateLocation, memberships }}
+      value={{ currentServer, currentChannel, updateLocation, memberships, isLoading }}
     >
       {children}
     </AppContext.Provider>

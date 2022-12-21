@@ -6,6 +6,7 @@ import {
   Avatar,
   Box,
   Button,
+  CircularProgress,
   IconButton,
   List,
   ListItem,
@@ -15,19 +16,38 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import useAuthContext from "../hooks/useAuthContext";
 import TagIcon from "@mui/icons-material/Tag";
 import { grey } from "@mui/material/colors";
 import { useEffect, useState } from "react";
-import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import usePocketbase from "../hooks/usePocketbase";
 import useAppContext from "../hooks/useAppContext";
 import { Record } from "pocketbase";
 import AddIcon from "@mui/icons-material/Add";
+import AddChannelDialog from "../components/AddChannelDialog";
 
 export default function Root() {
+  const { isLoading } = useAppContext();
+
+  if (isLoading) {
+    return (
+      <Stack
+        bgcolor={grey[900]}
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+        width="100vw"
+      >
+        <CircularProgress size={75} />
+      </Stack>
+    )
+  }
+
   return (
     <Stack
       height="100vh"
@@ -119,23 +139,41 @@ function ChannelNavigation() {
   const { user, signOut } = useAuthContext();
   const { currentServer, currentChannel, updateLocation } = useAppContext();
   const pb = usePocketbase();
+
+  const [openAddChannelDialog, setOpenAddChannelDialog] = useState(false);
+
   const [channels, setChannels] = useState<Record[]>([]);
 
+  let unsubscribe: () => void;
+
   useEffect(() => {
-    const getChannels = async (): Promise<Record[]> => {
+    const getChannels = async () => {
       const channels = await pb.collection("channels").getFullList(undefined, {
         filter: `server = "${currentServer?.id}"`,
       });
-      return channels;
+
+      setChannels(channels);
+
+      unsubscribe = await pb
+        .collection("channels")
+        .subscribe("*", async ({ action, record }) => {
+          if (action === "create") {
+            setChannels((prevState) => [...prevState, record]);
+          } else if (action === "delete") {
+            setChannels((prevState) =>
+              prevState.filter((m) => m.id !== record.id)
+            );
+          }
+        });
+
     };
 
-    console.log("currentServer", currentServer);
-    console.log("currentChannel", currentChannel);
-    if (currentServer) {
-      getChannels().then((channels) => {
-        setChannels(channels);
-      });
-    }
+    if (currentServer) getChannels();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+
   }, [currentServer, currentChannel]);
 
   const handleClick = (channelId: string) => {
@@ -145,6 +183,7 @@ function ChannelNavigation() {
 
 
   return (
+    <>
     <Box
       width={250}
       display="flex"
@@ -170,7 +209,7 @@ function ChannelNavigation() {
               <Typography variant="overline">Channels</Typography>
             </AccordionSummary>
             <Tooltip title='Add Channel'>
-              <IconButton sx={{mr: 1}}>
+              <IconButton sx={{mr: 1}} onClick={() => setOpenAddChannelDialog(true)}>
                 <AddIcon />
               </IconButton>
             </Tooltip>
@@ -203,6 +242,9 @@ function ChannelNavigation() {
 
       </Box>
     </Box>
+    <AddChannelDialog open={openAddChannelDialog} onClose={() => setOpenAddChannelDialog(false)}/>
+    </>
+
   );
 }
 
@@ -253,9 +295,13 @@ function SendMessageInput() {
           label={`Message #${currentChannel?.name}`}
           variant="outlined"
         />
-        <Button type="submit" variant="outlined">
-          Send
-        </Button>
+        <Box display='flex' justifyContent='center' alignItems='center'>
+          <Tooltip title='Send'>
+            <IconButton type='submit'>
+              <PlayArrowIcon/>
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Stack>
     </form>
   );
@@ -399,7 +445,7 @@ function MembersList(): JSX.Element {
       <Stack direction="column" spacing={1} p={1}>
         {members.length > 0 &&
           members.map((member) => (
-            <ListItemButton>
+            <ListItemButton key={member.id}>
               <User key={member.id} user={member.expand.user} />
             </ListItemButton>
           ))}

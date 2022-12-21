@@ -20,6 +20,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
             pocketbase.authStore.clear();
             if (!user) {
                 console.log('User has signed out!');
+                window.location.reload();
             }
         }
         catch(e) {

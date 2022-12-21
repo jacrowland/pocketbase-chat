@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AuthContextProvider } from './components/AuthContext'
+import { AuthContextProvider } from './context/AuthContext'
 import { AppContext, AppContextProvider } from './context/AppContext'
 import AppRoutes from './routes/routes'
 
