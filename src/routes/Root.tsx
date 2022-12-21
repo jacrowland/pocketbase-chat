@@ -1,4 +1,8 @@
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
   Avatar,
   Box,
   Button,
@@ -23,163 +27,145 @@ import { Record } from "pocketbase";
 
 export default function Root() {
   return (
-    <Stack width="100vw" direction="row" display="flex">
-      <ServerSelect />
-      <ChannelSelect />
-      <Messages />
-      <Members />
+    <Stack height='100vh' maxHeight='100vh' width="100vw" direction="row" display="flex">
+      <ServerNavigation />
+      <ChannelNavigation />
+      <ChannelContent/>
+      <MembersList/>
     </Stack>
   );
 }
 
-function ServerSelect() {
-  const pb = usePocketbase();
-  const { user } = useAuthContext();
-
-  let [memberships, setMemberships] = useState<Record[]>([]);
-
-  const getMemberships = async () => {
-    const resultList = await pb
-      .collection("memberships")
-      .getFullList(undefined, {
-        filter: `user = "${user?.id}"`,
-        expand: "server",
-      });
-    setMemberships(resultList);
-  };
-
-  useEffect(() => {
-    getMemberships();
-  }, []);
-
+function SectionHeader({ title, color = 'white' } : { title: string, color? : 'white' | 'black'}): JSX.Element {
   return (
-    <Box height="100vh" width={125} sx={{ backgroundColor: grey[900] }}>
-      <Stack
-        direction="column"
-        justifyContent="center"
-        alignItems="center"
-        spacing={1}
-        pt={1}
-      >
-        {memberships.map((membership) => {
-          return (
-            <ServerButton
-              key={membership.id}
-              id={membership.server}
-              name={membership.expand.server.name}
-            />
-          );
-        })}
+    <Box py={2} width='100%' bgcolor={grey[200]}>
+      <SectionTitle title={title} color={color} />
+    </Box>
+  )
+
+}
+
+function SectionTitle({ title, color = 'white' } : { title: string, color? : 'white' | 'black'}): JSX.Element {
+  return (
+    <Typography p={2} fontWeight='bold' variant='overline' color={color}>
+      {title}
+    </Typography>
+  )
+}
+
+function ServerNavigation() {
+
+  const { currentServer, memberships } = useAppContext();
+
+  // Display the current servers that the user is a member of
+  return (
+    <Box width={100} sx={{ backgroundColor: grey[900] }} overflow='auto'>
+      <Stack direction='column' spacing={1} mt={3} justifyItems='center' alignItems='center'>
+        {
+          memberships.map((membership) => (
+            <ServerButton key={membership.id} name={membership.expand.server.name} id={membership.server} />
+          ))
+        }
       </Stack>
     </Box>
-  );
+  )
 }
 
-function ServerButton({ name, id }: { name: string; id: string }) {
+function ServerButton({ name, id } : { name: string, id: string}): JSX.Element {
+
   const { updateLocation } = useAppContext();
+
   const handleClick = () => {
-    updateLocation(id, undefined);
-  };
+    console.log('serverid', id);
+    updateLocation(id);
+  }
+
   return (
-    <Tooltip title={name} placement="right">
-      <IconButton onClick={() => handleClick()}>
-        <Avatar sx={{ padding: 0, margin: 0, height: 75, width: 75 }}>
-          {name[0]}
-        </Avatar>
-      </IconButton>
-    </Tooltip>
-  );
+    <Box>
+      <Tooltip title={name} placement='right'>
+        <IconButton onClick={() => handleClick()}>
+          <Avatar>S</Avatar>
+        </IconButton>
+      </Tooltip>
+    </Box>
+  )
 }
 
-function ChannelSelect() {
+function ChannelNavigation() {
   const { user } = useAuthContext();
+  const { currentServer, currentChannel, updateLocation } = useAppContext();
   const pb = usePocketbase();
-  const { currentServer } = useAppContext();
-
-  const [currentServerName, setCurrentServerName] = useState<string>("");
-
-  let [channels, setChannels] = useState<Record[]>([]);
+  const [channels, setChannels] = useState<Record[]>([]);
 
   useEffect(() => {
-    const getChannels = async () => {
-      const resultList = await pb
-        ?.collection("channels")
-        .getFullList(undefined, {
-          expand: "server",
-          filter: `server = "${currentServer}"`,
-        });
-      console.log(resultList);
-      setChannels(resultList);
-    };
+    const getChannels = async (): Promise<Record[]> => {
+      const channels = await pb.collection("channels").getFullList(undefined, {
+        filter: `server = "${currentServer?.id}"`
+      });
+      return channels;
+    }
 
-    const getServerName = async () => {
-      const server = await pb
-        ?.collection("servers")
-        .getFirstListItem(currentServer);
-      setCurrentServerName(server.name);
-    };
+    console.log('currentServer', currentServer);
+    console.log('currentChannel', currentChannel);
+    if (currentServer) {
+      getChannels().then((channels) => {
+        setChannels(channels);
+      });
+    }
+  }, [currentServer, currentChannel]);
 
-    getChannels();
-    getServerName();
-  }, [currentServer]);
+  const handleClick = (channelId: string) => {
+    if (currentServer)
+      updateLocation(currentServer?.id, channelId);
+  }
 
   return (
-    <Box
-      height="100vh"
-      bgcolor={grey[200]}
-      flexDirection="column"
-      width={250}
-      display="flex"
-      justifyContent="space-between"
-    >
+    <Box width={250} display='flex' flexDirection='column' sx={{ backgroundColor: grey[200] }} overflow='auto' justifyContent='space-between'>
       <Box>
-        <Box width="100%" p={2}>
-          <Typography fontWeight="bold" variant="overline">
-            {currentServerName}
-          </Typography>
-        </Box>
-        <List>
-          {channels.map((channel) => (
-            <ListItem key={channel.id}>
-              <ChannelButton id={channel.id} name={channel.name} />
-            </ListItem>
-          ))}
-        </List>
+        <SectionHeader title={currentServer?.name} color="black"/>
+        <Accordion  sx={{backgroundColor: 'transparent'}} defaultExpanded disableGutters>
+          <AccordionSummary>
+            <Typography variant='overline'>Channels</Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{p: 0, pb: 2, m: 0}}>
+            <List sx={{p: 0, m: 0}}>
+            { 
+              channels.map((channel) => (
+                <ListItem sx={{p: 0, m: 0}} key={channel.id}>
+                  <ListItemButton onClick={() => handleClick(channel.id)}>
+                    <TagIcon/>
+                    <ListItemText primary={channel.name} />
+                  </ListItemButton>
+                </ListItem>
+              ))
+            }
+            </List>
+          </AccordionDetails>
+        </Accordion>
       </Box>
-      <Box p={1}>
-        <Typography variant="overline" align="center">
-          {user?.email}
-        </Typography>
+      <Box pl={2} pb={2}>
+        <User user={user}/>
       </Box>
     </Box>
-  );
+  )
 }
 
-function ChannelButton({ name, id }: { name: string; id: string }) {
-  const { updateLocation, currentServer } = useAppContext();
-
-  const handleClick = () => {
-    updateLocation(currentServer, id);
-  };
-
+function User({ user } : { user: Record }): JSX.Element {
   return (
-    <ListItemButton onClick={() => handleClick()}>
-      <TagIcon fontSize="small" />
-      <Typography variant="button">{name}</Typography>
-    </ListItemButton>
-  );
-}
+    <Stack  direction='row' alignItems='center' spacing={1}>
+      <Avatar> J </Avatar>
+      <Typography>
+        {user?.username}
+      </Typography>
+    </Stack>
+  )
+};
 
-function Messages() {
-  const [text, setText] = useState<string>("");
-  const { user } = useAuthContext();
+function SendMessageInput() {
   const pb = usePocketbase();
-  const [messages, setMessages] = useState<any[]>([]);
-
-  const { currentServer, currentChannel } = useAppContext();
-  const [currentChannelName, setCurrentChannelName] = useState<string>("");
-
-  let unsubscribe: () => void;
+  const [text, setText] = useState("");
+  const { user } = useAuthContext();
+  const { currentChannel } = useAppContext();
 
   const sendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -188,8 +174,10 @@ function Messages() {
         const data = {
           text: text,
           user: user.id,
-          channel: currentChannel,
+          channel: currentChannel?.id,
         };
+        console.log(data);
+
         const createdMessage = await pb.collection("messages").create(data);
         setText("");
       } else {
@@ -200,15 +188,54 @@ function Messages() {
     }
   };
 
+  return (
+    <form onSubmit={(e) => sendMessage(e)}>
+      <Stack direction="row" spacing={1} p={1}>
+        <TextField
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          fullWidth
+          id="outlined-basic"
+          label={`Message #${currentChannel?.name}`}
+          variant="outlined"
+        />
+        <Button type="submit" variant="outlined">
+          Send
+        </Button>
+      </Stack>
+    </form>
+  );
+}
+
+function ChannelContent() {
+  const { currentChannel } = useAppContext();
+  return (
+    <Box height="100vh" flexGrow={1} sx={{ backgroundColor: grey[100] }}>
+      <Stack direction="column" height="100%" justifyContent="space-between">
+        <SectionHeader title={`# ${currentChannel?.name}`} color="black"/>
+        <Messages />
+        <SendMessageInput/>
+      </Stack>
+    </Box>
+  );
+}
+
+function Messages() : JSX.Element {
+  const pb = usePocketbase();
+
+  const { currentServer, currentChannel } = useAppContext();
+  let unsubscribe: () => void;
+
   useEffect(() => {
     const getMessages = async () => {
-      const result = await pb.collection("messages").getList(1, 10, {
+      const result = await pb.collection("messages").getFullList(undefined, {
         sort: "created",
         expand: "user",
-        filter: `channel = "${currentChannel}"`,
+        filter: `channel = "${currentChannel?.id}"`,
       });
 
-      setMessages(result.items);
+      console.log(result);
+      setMessages(result);
 
       unsubscribe = await pb
         .collection("messages")
@@ -225,59 +252,38 @@ function Messages() {
         });
     };
 
-    const getChannelName = async () => {
-      const channel = await pb.collection("channels").getOne(currentChannel);
-      setCurrentChannelName(channel.name);
-    };
-
     getMessages();
-    getChannelName();
 
     return () => {
       if (unsubscribe) unsubscribe();
     };
   }, [currentServer, currentChannel]);
 
+  const [messages, setMessages] = useState<Record[]>([]);
+
   return (
-    <Box height="100vh" flexGrow={1} sx={{ backgroundColor: grey[100] }}>
-      <Stack direction="column" height="100%" justifyContent="space-between">
-        <Box width="100%" p={2} bgcolor={grey[100]}>
-            <Typography variant="overline">{currentChannelName}</Typography>
-        </Box>
-        <Stack direction="column" spacing={1} p={1} overflow="auto" flexGrow={1}>
-          {messages &&
-            messages.map((message) => (
-              <Message
-                key={message.id}
-                text={message.text}
-                username={message.expand.user.username}
-                timestamp={message.created}
-              />
-            ))}
-        </Stack>
-        <form onSubmit={(e) => sendMessage(e)}>
-          <Stack direction="row" spacing={1} p={1}>
-            <TextField
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              fullWidth
-              id="outlined-basic"
-              label="Message #announcements "
-              variant="outlined"
-            />
-            <Button type="submit" variant="outlined">
-              Send
-            </Button>
-          </Stack>
-        </form>
-      </Stack>
+    <Stack direction="column" spacing={1} p={1} overflow="auto" flexGrow={1}>
+    {messages.length > 0 ?
+      messages.map((message) => (
+        <Message
+          key={message.id}
+          text={message.text}
+          username={message.expand.user.username}
+          timestamp={new Date(message.created)}
+        />
+      ))
+    : <Box width='100%' justifyContent='center' alignItems='center'>
+        <Alert severity='info'>This is the start of #{currentChannel?.name}. Send a message!</Alert>
     </Box>
-  );
+    }
+  </Stack>
+  )
 }
 
 function Message({
   text,
   username,
+  timestamp,
 }: {
   text: string;
   username: string;
@@ -293,12 +299,12 @@ function Message({
       <Box bgcolor={hover ? grey[200] : ""} borderRadius={2} p={1}>
         <Stack direction="row" spacing={2}>
           <Box mt={1}>
-            <Avatar>{username[0]}</Avatar>
+            <Avatar>{username[0].toUpperCase()}</Avatar>
           </Box>
           <Stack direction="column">
             <Stack direction="row" spacing={1}>
               <Typography variant="overline">{username}</Typography>
-              <Typography variant="overline">1/1/1</Typography>
+              <Typography variant="overline">{timestamp.toLocaleDateString()} - {timestamp.getHours()}:{timestamp.getMinutes()}:{timestamp.getSeconds()}</Typography>
             </Stack>
             <Typography variant="body1">{text}</Typography>
           </Stack>
@@ -308,54 +314,36 @@ function Message({
   );
 }
 
+function MembersList(): JSX.Element {
+  const pb = usePocketbase();
+  const { currentServer } = useAppContext();
+  const [members, setMembers] = useState<Record[]>([]);
 
-function Members() {
-    const pb = usePocketbase();
-    const { currentServer } = useAppContext();
-    const [members, setMembers] = useState<Record[]>([]);
-
-    useEffect(() => {
-        async function getMembers() {
-            const records = await pb.collection('memberships').getFullList(200 /* batch size */, {
-                sort: '-created',
-                expand: 'user',
-            });
-            setMembers(records);
-            console.log(records);
-        }
-        getMembers();
-    }, [])
+  useEffect(() => {
+    const getMembers = async () => {
+      const members = await pb.collection("memberships").getFullList(undefined, {
+        filter: `server = "${currentServer?.id}"`,
+        expand: "user",
+      });
+      console.log(members);
+      setMembers(members);
+    }
+    getMembers();
+  }, [currentServer]);
 
   return (
-    <Box
-      height="100vh"
-      minWidth={300}
-      borderRight="1px solid black"
-      sx={{ backgroundColor: grey[800] }}
-    >
-        <Box width="100%" p={2}>
-            <Typography color='white' variant="overline">Members</Typography>
-        </Box>
-      <List>
-        {
-            members.map((member) => (
-                <Member key={member.id} username={member.expand.user.username} />
-            ))
-        }
-      </List>
-    </Box>
-  );
-}
-
-function Member( { username }: { username: string }) {
-    return (
-        <ListItem>
+    <Box width={275} bgcolor={grey[300]}>
+      <SectionHeader title={`Members (${members.length})`} color="black" />
+      <Stack direction='column' spacing={1} p={1}>
+      {
+        members.length > 0 &&
+        members.map((member) => (
           <ListItemButton>
-            <ListItemAvatar>
-              <Avatar>{username[0].toUpperCase()}</Avatar>
-            </ListItemAvatar>
-            <ListItemText sx={{color: 'white'}}>{username}</ListItemText>
+            <User key={member.id} user={member.expand.user} />
           </ListItemButton>
-        </ListItem>
-    )
+          ))
+        }
+        </Stack>
+    </Box>
+  )
 }

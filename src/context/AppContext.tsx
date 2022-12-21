@@ -1,59 +1,94 @@
 import React, { useEffect, useState } from "react";
-import PocketBase from "pocketbase";
+import PocketBase, { Record } from "pocketbase";
 import usePocketbase from "../hooks/usePocketbase";
 import useAuthContext from "../hooks/useAuthContext";
 
-interface AppContextProps { 
-    currentServer: string; // id of the server
-    currentChannel: string; // id of the channel
-    updateLocation: (serverId: string, channelId?: string) => void;
+interface AppContextProps {
+  currentServer: Record | null; // id of the server
+  currentChannel: Record | null; // id of the channel
+  memberships: Record[]; // list of memberships
+  updateLocation: (serverId: string, channelId?: string) => void;
 }
 
-export const AppContext = React.createContext<AppContextProps>({});
+export const AppContext = React.createContext<AppContextProps>({
+  currentServer: null,
+  currentChannel: null,
+    memberships: [] as Record[],
+  updateLocation: () => {},
+});
 
-export const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
-    const [currentServer, setCurrentServer] = useState<string>('');
-    const [currentChannel, setCurrentChannel] = useState<string>('');
-    const { user } = useAuthContext();
+export const AppContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const pb = usePocketbase();
+  const [currentServer, setCurrentServer] = useState<Record | null>(null);
+  const [currentChannel, setCurrentChannel] = useState<Record | null>(null);
 
-    const pb = usePocketbase();
+  const [memberships, setMemberships] = useState<Record[]>([]);
 
-    // On load, get the first server the user is a member of and set it as the current server
-    // then get the first channel in that server and set it as the current channel
-    const initialize = async () => {
-        const resultList = await pb.collection('memberships').getFirstListItem(`user = "${user.id}"`);
-        await setDefaultChannel( resultList.server );
-    };
+  const { user } = useAuthContext();
 
-    const setDefaultChannel = async ( serverId : string) => {
-        const resultList = await pb.collection('channels').getFirstListItem(`server = "${serverId}"`);
-        setCurrentChannel(resultList.id);
-    };
+  const updateLocation = async (serverId: string, channelId?: string) => {
+    const server = await getServerById(serverId);
+    let channel: Record;
 
-    function updateLocation(serverId: string, channelId?: string) {
-        setCurrentServer(serverId);
-        if (channelId)
-            setCurrentChannel(channelId);
-        else {
-            setDefaultChannel(serverId);
-        }
+    // if no channel is specified, get the default channel
+    if (!channelId) {
+        channel = await getDefaultChannel(serverId);
+    }
+    else {
+        channel = await getChannelById(channelId);
     }
 
-    useEffect(() => {
-        console.log('Server changed', currentServer);
-    }, [currentServer])
+    setCurrentServer(server);
+    setCurrentChannel(channel);
+  };
 
-    useEffect(() => {
-        console.log('Channel changed', currentServer);
-    }, [currentChannel])
+  const getDefaultChannel = async (serverId: string) => {
+    return await pb
+    .collection("channels")
+    .getFirstListItem(`server = "${serverId}"`);
+  };
 
-    useEffect(() => {
-        initialize();
-    }, [])
+  const getServerById = async (serverId: string): Promise<Record> => {
+    return await pb.collection("servers").getOne(serverId);
+  };
 
-    return (
-        <AppContext.Provider value={{currentServer, currentChannel, updateLocation }}>
-            {children}
-        </AppContext.Provider>
-    );
-}
+  const getChannelById = async (channelId: string): Promise<Record> => {
+    return await pb.collection("channels").getOne(channelId);
+  };
+
+  const getMemberships = async (): Promise<Record[]> => {
+    const userId = user?.id;
+    return await pb.collection("memberships").getFullList(undefined, {
+      filter: `user = "${userId}"`,
+      expand: "server",
+    });
+  };
+
+  useEffect(() => {
+    // Initialise the application context
+    if (user) {
+        getMemberships().then((memberships) => {
+            setMemberships(memberships);
+            updateLocation(memberships[0].server);
+        });
+    }
+  }, [user])
+
+  useEffect(() => {
+    if (!currentServer || !currentChannel) return;
+    console.log("Server:", currentServer.name);
+    console.log("Channel:", currentChannel.name);
+  }, [currentServer, currentChannel])
+
+  return (
+    <AppContext.Provider
+      value={{ currentServer, currentChannel, updateLocation, memberships }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+};
