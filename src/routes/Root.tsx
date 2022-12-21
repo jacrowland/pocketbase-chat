@@ -76,7 +76,6 @@ function ServerButton({ name, id } : { name: string, id: string}): JSX.Element {
   const { updateLocation } = useAppContext();
 
   const handleClick = () => {
-    console.log('serverid', id);
     updateLocation(id);
   }
 
@@ -84,7 +83,7 @@ function ServerButton({ name, id } : { name: string, id: string}): JSX.Element {
     <Box>
       <Tooltip title={name} placement='right'>
         <IconButton onClick={() => handleClick()}>
-          <Avatar>S</Avatar>
+          <Avatar>{name[0].toLocaleUpperCase()}</Avatar>
         </IconButton>
       </Tooltip>
     </Box>
