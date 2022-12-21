@@ -8,10 +8,11 @@ interface AuthContextProps {
     pocketbase: PocketBase;
 }
 
-export const AuthContext = createContext<AuthContextProps>({});
+export const AuthContext = createContext<AuthContextProps>({user : null, signOut: () => {}, pocketbase: new PocketBase('http://127.0.0.1:8090')});
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
-    const pocketbase= new PocketBase('http://127.0.0.1:8090');
+    
+    const pocketbase = new PocketBase('http://127.0.0.1:8090');
     const user = pocketbase.authStore.model;
 
     const signOut = () => {

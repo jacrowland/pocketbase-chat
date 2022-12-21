@@ -44,6 +44,7 @@ export default function Login() {
               </Typography>
               { alert && alert }
               <TextField
+                required
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 id="email"
@@ -52,6 +53,7 @@ export default function Login() {
                 value={email}
               />
               <TextField
+                required
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
                 id="password"
