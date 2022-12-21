@@ -36,7 +36,7 @@ export default function Login() {
 
   return (
       <Grid container minHeight='100vh' width='100vw' justifyContent="center" alignItems="center">
-        <Grid item xs={12} sm={10} md={6}>
+        <Grid item xs={10} sm={10} md={3}>
           <form id="login-form" onSubmit={(e) => handleLogin(e)}>
             <Stack direction="column" spacing={3}>
               <Typography variant="h5" textAlign="center">

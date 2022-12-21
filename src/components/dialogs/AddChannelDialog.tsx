@@ -11,10 +11,10 @@ import {
   Box,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import useAppContext from "../hooks/useAppContext";
-import useAuthContext from "../hooks/useAuthContext";
+import useAppContext from "../../hooks/useAppContext";
+import useAuthContext from "../../hooks/useAuthContext";
 import { useState } from "react";
-import usePocketbase from "../hooks/usePocketbase";
+import usePocketbase from "../../hooks/usePocketbase";
 
 interface AddChannelDialogProps {
   open: boolean;
@@ -26,17 +26,11 @@ export default function AddChannelDialog({
   onClose,
 }: AddChannelDialogProps): JSX.Element {
   const [text, setText] = useState<string>("");
-
-  const { currentServer, currentChannel } = useAppContext();
+  const { currentServer } = useAppContext();
   const { user } = useAuthContext();
   const pb = usePocketbase();
 
-  const reset = () => {
-    setText("");
-  };
-
   const handleSubmit = async () => {
-    console.log('submitting');
     try {
         const data = {
             name: text,
@@ -44,7 +38,7 @@ export default function AddChannelDialog({
             createdBy: user?.id,
         }
         console.log(data);
-      const channel = await pb.collection("channels").create(data);
+      await pb.collection("channels").create(data);
       onClose();
     } catch {}
   };

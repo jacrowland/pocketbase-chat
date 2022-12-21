@@ -63,7 +63,7 @@ export default function Login() {
       justifyContent="center"
       alignItems="center"
     >
-      <Grid item xs={12} sm={10} md={6}>
+      <Grid item xs={10} sm={10} md={3}>
         <form id="register-form" onSubmit={(e) => handleSignUp(e)}>
           <Stack direction="column" spacing={3}>
             <Typography variant="h5" textAlign="center">
