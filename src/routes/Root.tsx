@@ -15,6 +15,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import useAuthContext from "../hooks/useAuthContext";
 import TagIcon from "@mui/icons-material/Tag";
 import { grey } from "@mui/material/colors";
@@ -24,74 +25,98 @@ import ListItemText from "@mui/material/ListItemText";
 import usePocketbase from "../hooks/usePocketbase";
 import useAppContext from "../hooks/useAppContext";
 import { Record } from "pocketbase";
+import AddIcon from "@mui/icons-material/Add";
 
 export default function Root() {
   return (
-    <Stack height='100vh' maxHeight='100vh' width="100vw" direction="row" display="flex">
+    <Stack
+      height="100vh"
+      maxHeight="100vh"
+      width="100vw"
+      direction="row"
+      display="flex"
+    >
       <ServerNavigation />
       <ChannelNavigation />
-      <ChannelContent/>
-      <MembersList/>
+      <ChannelContent />
+      <MembersList />
     </Stack>
   );
 }
 
-function SectionHeader({ title, color = 'white' } : { title: string, color? : 'white' | 'black'}): JSX.Element {
+function SectionHeader({
+  title,
+  color = "white",
+}: {
+  title: string;
+  color?: "white" | "black";
+}): JSX.Element {
   return (
-    <Box py={2} width='100%' bgcolor={grey[200]}>
+    <Box py={2} width="100%" bgcolor={grey[200]}>
       <SectionTitle title={title} color={color} />
     </Box>
-  )
-
+  );
 }
 
-function SectionTitle({ title, color = 'white' } : { title: string, color? : 'white' | 'black'}): JSX.Element {
+function SectionTitle({
+  title,
+  color = "white",
+}: {
+  title: string;
+  color?: "white" | "black";
+}): JSX.Element {
   return (
-    <Typography p={2} fontWeight='bold' variant='overline' color={color}>
+    <Typography p={2} fontWeight="bold" variant="overline" color={color}>
       {title}
     </Typography>
-  )
+  );
 }
 
 function ServerNavigation() {
-
   const { currentServer, memberships } = useAppContext();
 
   // Display the current servers that the user is a member of
   return (
-    <Box width={100} sx={{ backgroundColor: grey[900] }} overflow='auto'>
-      <Stack direction='column' spacing={1} mt={3} justifyItems='center' alignItems='center'>
-        {
-          memberships.map((membership) => (
-            <ServerButton key={membership.id} name={membership.expand.server.name} id={membership.server} />
-          ))
-        }
+    <Box width={100} sx={{ backgroundColor: grey[900] }} overflow="auto">
+      <Stack
+        direction="column"
+        spacing={1}
+        mt={3}
+        justifyItems="center"
+        alignItems="center"
+      >
+        {memberships.map((membership) => (
+          <ServerButton
+            key={membership.id}
+            name={membership.expand.server.name}
+            id={membership.server}
+          />
+        ))}
       </Stack>
     </Box>
-  )
+  );
 }
 
-function ServerButton({ name, id } : { name: string, id: string}): JSX.Element {
-
+function ServerButton({ name, id }: { name: string; id: string }): JSX.Element {
   const { updateLocation } = useAppContext();
 
   const handleClick = () => {
     updateLocation(id);
-  }
+  };
 
   return (
     <Box>
-      <Tooltip title={name} placement='right'>
+      <Tooltip title={name} placement="right">
         <IconButton onClick={() => handleClick()}>
           <Avatar>{name[0].toLocaleUpperCase()}</Avatar>
         </IconButton>
       </Tooltip>
     </Box>
-  )
+  );
 }
 
 function ChannelNavigation() {
-  const { user } = useAuthContext();
+  const { user, signOut } = useAuthContext();
   const { currentServer, currentChannel, updateLocation } = useAppContext();
   const pb = usePocketbase();
   const [channels, setChannels] = useState<Record[]>([]);
@@ -99,13 +124,13 @@ function ChannelNavigation() {
   useEffect(() => {
     const getChannels = async (): Promise<Record[]> => {
       const channels = await pb.collection("channels").getFullList(undefined, {
-        filter: `server = "${currentServer?.id}"`
+        filter: `server = "${currentServer?.id}"`,
       });
       return channels;
-    }
+    };
 
-    console.log('currentServer', currentServer);
-    console.log('currentChannel', currentChannel);
+    console.log("currentServer", currentServer);
+    console.log("currentChannel", currentChannel);
     if (currentServer) {
       getChannels().then((channels) => {
         setChannels(channels);
@@ -114,51 +139,81 @@ function ChannelNavigation() {
   }, [currentServer, currentChannel]);
 
   const handleClick = (channelId: string) => {
-    if (currentServer)
-      updateLocation(currentServer?.id, channelId);
-  }
+    if (currentServer) updateLocation(currentServer?.id, channelId);
+  };
+
+
 
   return (
-    <Box width={250} display='flex' flexDirection='column' sx={{ backgroundColor: grey[200] }} overflow='auto' justifyContent='space-between'>
+    <Box
+      width={250}
+      display="flex"
+      flexDirection="column"
+      sx={{ backgroundColor: grey[200] }}
+      overflow="auto"
+      justifyContent="space-between"
+    >
       <Box>
-        <SectionHeader title={currentServer?.name} color="black"/>
-        <Accordion  sx={{backgroundColor: 'transparent'}} defaultExpanded disableGutters>
-          <AccordionSummary>
-            <Typography variant='overline'>Channels</Typography>
-          </AccordionSummary>
-          <AccordionDetails sx={{p: 0, pb: 2, m: 0}}>
-            <List sx={{p: 0, m: 0}}>
-            { 
-              channels.map((channel) => (
-                <ListItem sx={{p: 0, m: 0}} key={channel.id}>
+        <SectionHeader title={currentServer?.name} color="black" />
+        <Accordion
+          sx={{ backgroundColor: "transparent" }}
+          defaultExpanded
+          disableGutters
+        >
+          <Stack
+            direction="row"
+            width="100%"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <AccordionSummary>
+              <Typography variant="overline">Channels</Typography>
+            </AccordionSummary>
+            <Tooltip title='Add Channel'>
+              <IconButton sx={{mr: 1}}>
+                <AddIcon />
+              </IconButton>
+            </Tooltip>
+
+          </Stack>
+          <AccordionDetails sx={{ p: 0, pb: 2, m: 0 }}>
+            <List sx={{ p: 0, m: 0 }}>
+              {channels.map((channel) => (
+                <ListItem sx={{ p: 0, m: 0 }} key={channel.id}>
                   <ListItemButton onClick={() => handleClick(channel.id)}>
-                    <TagIcon/>
+                    <TagIcon />
                     <ListItemText primary={channel.name} />
                   </ListItemButton>
                 </ListItem>
-              ))
-            }
+              ))}
             </List>
           </AccordionDetails>
         </Accordion>
       </Box>
       <Box pl={2} pb={2}>
-        <User user={user}/>
+        <Stack direction='row' justifyContent='space-between'>
+          <User user={user} />
+          <Tooltip title='Sign out'>
+            <IconButton sx={{mr: 1}} onClick={() => signOut()}>
+                  <MeetingRoomIcon/>
+            </IconButton>
+          </Tooltip>
+
+        </Stack>
+
       </Box>
     </Box>
-  )
+  );
 }
 
-function User({ user } : { user: Record }): JSX.Element {
+function User({ user }: { user: Record }): JSX.Element {
   return (
-    <Stack  direction='row' alignItems='center' spacing={1}>
+    <Stack direction="row" alignItems="center" spacing={1}>
       <Avatar> J </Avatar>
-      <Typography>
-        {user?.username}
-      </Typography>
+      <Typography>{user?.username}</Typography>
     </Stack>
-  )
-};
+  );
+}
 
 function SendMessageInput() {
   const pb = usePocketbase();
@@ -211,15 +266,15 @@ function ChannelContent() {
   return (
     <Box height="100vh" flexGrow={1} sx={{ backgroundColor: grey[100] }}>
       <Stack direction="column" height="100%" justifyContent="space-between">
-        <SectionHeader title={`# ${currentChannel?.name}`} color="black"/>
+        <SectionHeader title={`# ${currentChannel?.name}`} color="black" />
         <Messages />
-        <SendMessageInput/>
+        <SendMessageInput />
       </Stack>
     </Box>
   );
 }
 
-function Messages() : JSX.Element {
+function Messages(): JSX.Element {
   const pb = usePocketbase();
 
   const { currentServer, currentChannel } = useAppContext();
@@ -262,21 +317,24 @@ function Messages() : JSX.Element {
 
   return (
     <Stack direction="column" spacing={1} p={1} overflow="auto" flexGrow={1}>
-    {messages.length > 0 ?
-      messages.map((message) => (
-        <Message
-          key={message.id}
-          text={message.text}
-          username={message.expand.user.username}
-          timestamp={new Date(message.created)}
-        />
-      ))
-    : <Box width='100%' justifyContent='center' alignItems='center'>
-        <Alert severity='info'>This is the start of #{currentChannel?.name}. Send a message!</Alert>
-    </Box>
-    }
-  </Stack>
-  )
+      {messages.length > 0 ? (
+        messages.map((message) => (
+          <Message
+            key={message.id}
+            text={message.text}
+            username={message.expand.user.username}
+            timestamp={new Date(message.created)}
+          />
+        ))
+      ) : (
+        <Box width="100%" justifyContent="center" alignItems="center">
+          <Alert severity="info">
+            This is the start of #{currentChannel?.name}. Send a message!
+          </Alert>
+        </Box>
+      )}
+    </Stack>
+  );
 }
 
 function Message({
@@ -303,7 +361,10 @@ function Message({
           <Stack direction="column">
             <Stack direction="row" spacing={1}>
               <Typography variant="overline">{username}</Typography>
-              <Typography variant="overline">{timestamp.toLocaleDateString()} - {timestamp.getHours()}:{timestamp.getMinutes()}:{timestamp.getSeconds()}</Typography>
+              <Typography variant="overline">
+                {timestamp.toLocaleDateString()} - {timestamp.getHours()}:
+                {timestamp.getMinutes()}:{timestamp.getSeconds()}
+              </Typography>
             </Stack>
             <Typography variant="body1">{text}</Typography>
           </Stack>
@@ -320,29 +381,29 @@ function MembersList(): JSX.Element {
 
   useEffect(() => {
     const getMembers = async () => {
-      const members = await pb.collection("memberships").getFullList(undefined, {
-        filter: `server = "${currentServer?.id}"`,
-        expand: "user",
-      });
+      const members = await pb
+        .collection("memberships")
+        .getFullList(undefined, {
+          filter: `server = "${currentServer?.id}"`,
+          expand: "user",
+        });
       console.log(members);
       setMembers(members);
-    }
+    };
     getMembers();
   }, [currentServer]);
 
   return (
     <Box width={275} bgcolor={grey[300]}>
       <SectionHeader title={`Members (${members.length})`} color="black" />
-      <Stack direction='column' spacing={1} p={1}>
-      {
-        members.length > 0 &&
-        members.map((member) => (
-          <ListItemButton>
-            <User key={member.id} user={member.expand.user} />
-          </ListItemButton>
-          ))
-        }
-        </Stack>
+      <Stack direction="column" spacing={1} p={1}>
+        {members.length > 0 &&
+          members.map((member) => (
+            <ListItemButton>
+              <User key={member.id} user={member.expand.user} />
+            </ListItemButton>
+          ))}
+      </Stack>
     </Box>
-  )
+  );
 }
