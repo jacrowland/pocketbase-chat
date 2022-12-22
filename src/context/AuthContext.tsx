@@ -1,19 +1,25 @@
 
 import PocketBase, { Admin, Record } from "pocketbase";
 import { createContext, ReactNode, useEffect, useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { User } from "../types/records";
+
+
+
+export const pocketbase = new PocketBase('http://127.0.0.1:8090');
 
 interface AuthContextProps { 
-    user: Record | null;
+    user: User | null;
     signOut: () => void;
-    pocketbase: PocketBase;
 }
 
-export const AuthContext = createContext<AuthContextProps>({user : null, signOut: () => {}, pocketbase: new PocketBase('http://127.0.0.1:8090')});
+export const AuthContext = createContext<AuthContextProps>({user : null, signOut: () => {}});
 
 export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
-    const pocketbase = new PocketBase('http://127.0.0.1:8090');
-    const [user , setUser] = useState<Record | null>(!(pocketbase.authStore.model instanceof Admin) ? pocketbase.authStore.model : null);
-    
+    const [user , setUser] = useState<User | null>(pocketbase.authStore.model as User);
+    const location = useLocation();
+    const navigate = useNavigate();
+
     const signOut = () => {
         try {
             pocketbase.authStore.clear();
@@ -29,7 +35,7 @@ export const AuthContextProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return (
-        <AuthContext.Provider value={{ pocketbase, user, signOut }}>
+        <AuthContext.Provider value={{ user, signOut }}>
             {children}
         </AuthContext.Provider>
     );

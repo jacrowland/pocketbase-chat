@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import usePocketbase from "../hooks/usePocketbase";
 import useAppContext from "../hooks/useAppContext";
 import { Record } from "pocketbase";
-import { UserButton } from "./UserButton";
+import { UserButton } from "./button/UserButton";
 import { User } from "../types/records";
 
 
@@ -60,7 +60,7 @@ export default function Messages(): JSX.Element {
           <Message
             key={message.id}
             text={message.text}
-            user={message.expand.user}
+            user={message.expand.user as User}
             timestamp={new Date(message.created)} />
         ))
       ) : (

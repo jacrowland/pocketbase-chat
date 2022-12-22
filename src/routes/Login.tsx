@@ -1,23 +1,13 @@
 import { Alert, Button, Grid, Stack, TextField, Typography } from "@mui/material";
 import Link from "@mui/material/Link";
 import { ReactNode, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import useAuthContext from "../hooks/useAuthContext";
 import usePocketbase from "../hooks/usePocketbase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [alert, setAlert] = useState<ReactNode>(null);
-  const navigate = useNavigate();
-  const { user } = useAuthContext();
   const pb = usePocketbase();
-
-  useEffect(() => {
-    if (user) {
-        navigate('/');
-    }
-  }, [user])
 
   const handleLogin = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -75,4 +65,3 @@ export default function Login() {
       </Grid>
   );
 }
-

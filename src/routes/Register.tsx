@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import Link from "@mui/material/Link";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuthContext from "../hooks/useAuthContext";
 import usePocketbase from "../hooks/usePocketbase";
@@ -17,38 +17,35 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [alert, setAlert] = useState<ReactNode>(null);
-  const navigate = useNavigate();
   const { user } = useAuthContext();
   const pb = usePocketbase();
 
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user]);
-
-  const login = async() => {
-    await pb?.collection('users').authWithPassword(email, password);
-  }
+  const login = async () => {
+    await pb?.collection("users").authWithPassword(email, password);
+  };
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-        const data = {
-            password: password,
-            passwordConfirm: password,
-            username: email,
-            name: name,
-        }
+      const data = {
+        password: password,
+        passwordConfirm: password,
+        username: email,
+        name: name,
+      };
 
-        console.log(data);
+      console.log(data);
 
-        await pb?.collection('users').create(data);
-        await login();
-        if (user) {
-            console.log('Logged in!');
-            setAlert(<Alert severity="success">Successfully registered and logged in</Alert>);
-        }
+      await pb?.collection("users").create(data);
+      await login();
+      if (user) {
+        console.log("Logged in!");
+        setAlert(
+          <Alert severity="success">
+            Successfully registered and logged in
+          </Alert>
+        );
+      }
     } catch (e) {
       console.error(e);
       setAlert(<Alert severity="error">An error occurred</Alert>);
@@ -71,7 +68,7 @@ export default function Login() {
             </Typography>
             {alert && alert}
             <TextField
-                required
+              required
               onChange={(e) => setEmail(e.target.value)}
               type="email"
               id="email"
@@ -80,7 +77,7 @@ export default function Login() {
               value={email}
             />
             <TextField
-                required
+              required
               onChange={(e) => setName(e.target.value)}
               type="text"
               id="name"
@@ -89,7 +86,7 @@ export default function Login() {
               value={name}
             />
             <TextField
-                required
+              required
               onChange={(e) => setPassword(e.target.value)}
               inputProps={{ minLength: 8, maxLength: 72 }}
               type="password"

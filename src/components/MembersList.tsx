@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 import usePocketbase from "../hooks/usePocketbase";
 import useAppContext from "../hooks/useAppContext";
 import { Record } from "pocketbase";
-import { UserButton } from "./UserButton";
+import { UserButton } from "./button/UserButton";
 import SectionHeader from "./SectionHeader";
+import { User } from "../types/records";
 
 export default function MembersList(): JSX.Element {
   const pb = usePocketbase();
@@ -34,7 +35,7 @@ export default function MembersList(): JSX.Element {
       <Stack direction="column" spacing={1} p={1}>
         {members.length > 0 &&
           members.map((member) => (
-              <UserButton key={member.id} user={member.expand.user} />
+              <UserButton key={member.id} user={member.expand.user as User} />
           ))}
       </Stack>
     </Box>

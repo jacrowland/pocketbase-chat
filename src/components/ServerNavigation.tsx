@@ -1,12 +1,13 @@
 import { Box, Stack } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import useAppContext from "../hooks/useAppContext";
+import { Server } from "../types/records";
 import { ServerButton } from "./button/ServerButton";
 
 export  default function ServerNavigation() {
-  const { memberships } = useAppContext();
+  const { currentServer, memberships } = useAppContext();
 
-  // Display the current servers that the user is a member of
+
   return (
     <Box width={100} sx={{ backgroundColor: grey[900] }} overflow="auto">
       <Stack
@@ -18,8 +19,9 @@ export  default function ServerNavigation() {
       >
         {memberships.map((membership) => (
           <ServerButton
+            selected={currentServer?.id === membership.server}
             key={membership.id}
-            name={membership.expand.server.name}
+            name={(membership.expand.server as Server).name}
             id={membership.server} />
         ))}
       </Stack>

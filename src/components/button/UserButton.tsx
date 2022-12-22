@@ -1,8 +1,8 @@
 import { IconButton, ListItemButton, Stack, Typography } from "@mui/material";
 import { useState } from "react";
-import { User } from "../types/records";
-import ProfileDialog from "./dialogs/ProfileDialog";
-import { UserAvatar } from "./UserAvatar";
+import { User } from "../../types/records";
+import ProfileDialog from "../dialogs/ProfileDialog";
+import { UserAvatar } from "../UserAvatar";
 
 interface UserProps {
   user: User;

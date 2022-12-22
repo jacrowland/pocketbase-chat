@@ -11,7 +11,6 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import useAuthContext from "../hooks/useAuthContext";
 import TagIcon from "@mui/icons-material/Tag";
 import { grey } from "@mui/material/colors";
@@ -22,12 +21,11 @@ import useAppContext from "../hooks/useAppContext";
 import { Record } from "pocketbase";
 import AddIcon from "@mui/icons-material/Add";
 import AddChannelDialog from "./dialogs/AddChannelDialog";
-import { UserButton } from "./UserButton";
+import { UserButton } from "./button/UserButton";
 import SectionHeader from "./SectionHeader";
-import ProfileDialog from "./dialogs/ProfileDialog";
+import SignOutButton from "./button/SignOutButton";
 
 export default function ChannelNavigation() {
-  const { signOut } = useAuthContext();
   const { currentServer, currentChannel, updateLocation } = useAppContext();
   const pb = usePocketbase();
   const [openAddChannelDialog, setOpenAddChannelDialog] = useState(false);
@@ -75,7 +73,7 @@ export default function ChannelNavigation() {
         justifyContent="space-between"
       >
         <Box>
-          <SectionHeader title={currentServer?.name} color="black" />
+          <SectionHeader title={currentServer ? currentServer.name : 'Server'} color="black" />
           <Accordion
             sx={{ backgroundColor: "transparent" }}
             defaultExpanded
@@ -126,13 +124,9 @@ export default function ChannelNavigation() {
     const { user } = useAuthContext();
 
     return (
-        <Stack direction="row" justifyContent="space-between" p={1}>
-          {user !== null && <UserButton onClick={() => setOpen(true)} user={user} />}
-          <Tooltip title="Sign out">
-            <IconButton sx={{ mr: 1 }} onClick={() => signOut()}>
-              <MeetingRoomIcon />
-            </IconButton>
-          </Tooltip>
+        <Stack direction="row" justifyContent="space-between" p={1} alignItems='center'>
+          {user !== null && <UserButton user={user} />}
+          <SignOutButton />
         </Stack>
 
     );
