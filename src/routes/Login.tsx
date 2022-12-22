@@ -1,13 +1,18 @@
 import { Alert, Button, Grid, Stack, TextField, Typography } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import Link from "@mui/material/Link";
 import { ReactNode, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useAuthContext from "../hooks/useAuthContext";
 import usePocketbase from "../hooks/usePocketbase";
 
 export default function Login() {
+  const { user } = useAuthContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [alert, setAlert] = useState<ReactNode>(null);
   const pb = usePocketbase();
+  const navigate = useNavigate();
 
   const handleLogin = async(e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,6 +22,7 @@ export default function Login() {
             console.log('Logged in!');
             setAlert(<Alert severity="success">Successfully logged in</Alert>);
         }
+        navigate('/');
     }
     catch (e) {
         console.error(e);
@@ -25,8 +31,8 @@ export default function Login() {
   };
 
   return (
-      <Grid container minHeight='100vh' width='100vw' justifyContent="center" alignItems="center">
-        <Grid item xs={10} sm={10} md={3}>
+      <Grid bgcolor={grey[900]} container minHeight='100vh' width='100vw' justifyContent="center" alignItems="center">
+        <Grid item xs={10} sm={10} md={3} bgcolor={grey[200]} p={5}>
           <form id="login-form" onSubmit={(e) => handleLogin(e)}>
             <Stack direction="column" spacing={3}>
               <Typography variant="h5" textAlign="center">

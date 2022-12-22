@@ -4,7 +4,7 @@ import {
   Box, Link, Stack, Typography
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import usePocketbase from "../hooks/usePocketbase";
 import useAppContext from "../hooks/useAppContext";
 import { Record } from "pocketbase";
@@ -52,9 +52,14 @@ export default function Messages(): JSX.Element {
   }, [currentServer, currentChannel]);
 
   const [messages, setMessages] = useState<Record[]>([]);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    ref.current?.scroll(0, ref.current.scrollHeight);
+  }, [ref.current, currentChannel, currentServer]);
 
   return (
-    <Stack direction="column" spacing={1} p={1} overflow="auto" flexGrow={1}>
+    <Stack direction="column" spacing={1} p={1} overflow="auto" flexGrow={1} ref={ref}>
       {messages.length > 0 ? (
         messages.map((message) => (
           <Message

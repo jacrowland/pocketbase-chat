@@ -6,6 +6,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { grey } from "@mui/material/colors";
 import Link from "@mui/material/Link";
 import { ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -54,13 +55,14 @@ export default function Login() {
 
   return (
     <Grid
+      bgcolor={grey[900]}
       container
       minHeight="100vh"
       width="100vw"
       justifyContent="center"
       alignItems="center"
     >
-      <Grid item xs={10} sm={10} md={3}>
+      <Grid item xs={10} sm={10} md={3} bgcolor={grey[200]} p={5}>
         <form id="register-form" onSubmit={(e) => handleSignUp(e)}>
           <Stack direction="column" spacing={3}>
             <Typography variant="h5" textAlign="center">
