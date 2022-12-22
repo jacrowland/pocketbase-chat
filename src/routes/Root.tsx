@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   CircularProgress,
   Stack,
@@ -9,6 +10,7 @@ import { ChannelContent } from "../components/ChannelContent";
 import ChannelNavigation from "../components/ChannelNavigation";
 import MembersList from "../components/MembersList";
 import ServerNavigation from "../components/ServerNavigation";
+import Typography from "@mui/material/Typography";
 
 export default function Root() {
   const { isLoading } = useAppContext();
@@ -30,18 +32,19 @@ export default function Root() {
   }
 
   return (
-    <Stack
-      height="100vh"
-      maxHeight="100vh"
-      width="100vw"
-      direction="row"
-      display="flex"
+      <Stack
+        height="100vh"
+        maxHeight="100vh"
+        width="100vw"
+        direction="row"
+        display="flex"
 
-    >
-      <ServerNavigation />
-      <ChannelNavigation />
-      <ChannelContent />
-      <MembersList />
-    </Stack>
+      >
+        <ServerNavigation />
+        <ChannelNavigation />
+        <ChannelContent />
+        <MembersList />
+      </Stack>
+
   );
 }

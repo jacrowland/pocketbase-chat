@@ -35,10 +35,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 export default function ChannelNavigation() {
   const { currentServer } = useAppContext();
   const [expanded, setExpanded] = useState(true);
+  const [hover, setHover] = useState(false);
 
   return (
     <Box
-      width={250}
+      height="100%"
+      minWidth={250}
       display="flex"
       flexDirection="column"
       sx={{ backgroundColor: grey[300] }}
@@ -46,30 +48,29 @@ export default function ChannelNavigation() {
       justifyContent="space-between"
     >
       <Box>
-        <SectionHeader
-          title={currentServer ? currentServer.name : "Server"}
-          color="black"
-        />
+        <Box borderBottom={`1px solid ${grey[400]}`}>
+          <SectionHeader
+            title={currentServer ? currentServer.name : "Server"}
+            color="black"
+          />
+        </Box>
         <Accordion
           onChange={() => setExpanded(!expanded)}
           defaultExpanded
           sx={{ backgroundColor: "transparent" }}
           disableGutters
         >
-          <Stack
-            direction="row"
-            width="100%"
-            justifyContent="space-between"
-            alignItems="center"
-          >
+          <AccordionSummary onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+          <Stack sx={{width: '100%'}} direction='row' justifyContent='space-between'>
             <Stack alignItems="center" direction="row">
-            <ArrowDropDownIcon sx={{ mt: -0.5, ml: 1, transition: '0.3s ease-in-out', transform: expanded ? ''  : 'rotate(-90deg)' }} />
-              <AccordionSummary>
-                <Typography variant="overline">Channels</Typography>
-              </AccordionSummary>
+                <ArrowDropDownIcon sx={{ mt: -0.5, ml: -0.5, mr: 1, transition: '0.3s ease-in-out', transform: expanded ? ''  : 'rotate(-90deg)' }} />
+                <Typography variant="overline" fontWeight={hover ? 'bold' : ''}>Channels</Typography>
             </Stack>
-            <AddChannelButton />
+            <Box mr={-1}>
+              <AddChannelButton />
+            </Box>
           </Stack>
+          </AccordionSummary>
           <AccordionDetails sx={{ p: 0, pb: 1, m: 0 }}>
             <ChannelList />
           </AccordionDetails>

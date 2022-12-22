@@ -8,7 +8,7 @@ export default function SectionHeader({
   color?: "white" | "black";
 }): JSX.Element {
   return (
-    <Box py={2} width="100%" bgcolor={grey[200]}>
+    <Box py={2} width="100%" >
       <SectionTitle title={title} color={color} />
     </Box>
   );

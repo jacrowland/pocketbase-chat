@@ -30,7 +30,7 @@ export default function MembersList(): JSX.Element {
   }, [currentServer]);
 
   return (
-    <Box width={275} bgcolor={grey[300]}>
+    <Box minWidth={275} bgcolor={grey[300]}>
       <SectionHeader title={`Members (${members.length})`} color="black" />
       <Stack direction="column" spacing={1} p={1}>
         {members.length > 0 &&

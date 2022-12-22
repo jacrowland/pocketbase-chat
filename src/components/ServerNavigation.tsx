@@ -8,7 +8,7 @@ export  default function ServerNavigation() {
   const { currentServer, memberships } = useAppContext();
 
   return (
-    <Box width={75} sx={{ backgroundColor: grey[900] }} overflow="auto">
+    <Box minWidth={75} sx={{ backgroundColor: grey[900] }} overflow="auto">
       <Stack
         direction="column"
         spacing={1}

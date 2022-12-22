@@ -15,9 +15,11 @@ import SectionHeader from "./SectionHeader";
 export function ChannelContent() {
   const { currentChannel } = useAppContext();
   return (
-    <Box height="100vh" flexGrow={1} sx={{ backgroundColor: grey[100] }}>
+    <Box minWidth={500} flexGrow={1} sx={{ backgroundColor: grey[100] }}>
       <Stack direction="column" height="100%" justifyContent="space-between">
-        <SectionHeader title={`# ${currentChannel?.name}`} color="black" />
+        <Box borderBottom={`1px solid ${grey[300]}`}>
+          <SectionHeader title={`# ${currentChannel?.name}`} color="black" />
+        </Box>
         <Messages />
         <SendMessageInput />
       </Stack>
