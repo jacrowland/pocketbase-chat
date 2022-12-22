@@ -15,6 +15,7 @@ import useAppContext from "../../hooks/useAppContext";
 import useAuthContext from "../../hooks/useAuthContext";
 import { useState } from "react";
 import usePocketbase from "../../hooks/usePocketbase";
+import { Channel } from "../../types/records";
 
 interface AddChannelDialogProps {
   open: boolean;
@@ -26,19 +27,21 @@ export default function AddChannelDialog({
   onClose,
 }: AddChannelDialogProps): JSX.Element {
   const [text, setText] = useState<string>("");
-  const { currentServer } = useAppContext();
+  const { currentServer, updateLocation } = useAppContext();
   const { user } = useAuthContext();
   const pb = usePocketbase();
 
   const handleSubmit = async () => {
     try {
+      if (!currentServer || !user) return;
         const data = {
             name: text,
             server: currentServer?.id,
             createdBy: user?.id,
         }
         console.log(data);
-      await pb.collection("channels").create(data);
+      const newChannel = await pb.collection("channels").create(data) as Channel;
+      updateLocation(currentServer.id, newChannel.id)
       onClose();
     } catch {}
   };

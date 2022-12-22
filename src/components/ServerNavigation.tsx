@@ -7,9 +7,8 @@ import { ServerButton } from "./button/ServerButton";
 export  default function ServerNavigation() {
   const { currentServer, memberships } = useAppContext();
 
-
   return (
-    <Box width={100} sx={{ backgroundColor: grey[900] }} overflow="auto">
+    <Box width={75} sx={{ backgroundColor: grey[900] }} overflow="auto">
       <Stack
         direction="column"
         spacing={1}
