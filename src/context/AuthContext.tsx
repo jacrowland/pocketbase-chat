@@ -1,12 +1,10 @@
 
-import PocketBase, { Admin, Record } from "pocketbase";
+import PocketBase from "pocketbase";
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { User } from "../types/records";
 
-
-
-export const pocketbase = new PocketBase('http://127.0.0.1:8090');
+export const pocketbase = new PocketBase(import.meta.env.VITE_POCKETBASE_BASE_URL);
 
 interface AuthContextProps { 
     user: User | null;

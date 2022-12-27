@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import PocketBase, { Record } from "pocketbase";
 import usePocketbase from "../hooks/usePocketbase";
 import useAuthContext from "../hooks/useAuthContext";
 import { Channel, Membership, Server } from "../types/records";
